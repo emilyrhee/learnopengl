@@ -1,0 +1,1 @@
+/nix/store/i53w7x986ifmgzvb8da6zkfms4xzmdrk-gcc-wrapper-13.2.0/bin/g++ CMakeFiles/Test.dir/main.cpp.o CMakeFiles/Test.dir/glad.c.o -o Test  /nix/store/abkl7a7478qbx1r5g74dgaxf7dva662n-glfw-3.4/lib/libglfw.so.3.4
