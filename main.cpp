@@ -94,10 +94,26 @@ int main()
     glDeleteShader(fragmentShader); 
 
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f, 0.5f, 0.0f};
+        0.5f,  0.5f, 0.0f,  // top right
+        0.5f, -0.5f, 0.0f,  // bottom right
+       -0.5f, -0.5f, 0.0f,  // bottom left
+       -0.5f,  0.5f, 0.0f   // top left 
+    };
 
+    unsigned int indices[] = {
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
+    };  
+
+    unsigned int elementBufferObject;
+    glGenBuffers(1, &elementBufferObject);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        sizeof(indices),
+        indices,
+        GL_STATIC_DRAW
+    );
     unsigned int vertexBufferObject; // Stores raw vertex data (positions, colors, texture coordinates, etc.) in GPU memory.
     unsigned int vertexArrayObject; // Stores the configuration of how vertex data is interpreted and used.
     glGenVertexArrays(1, &vertexArrayObject);
@@ -106,7 +122,13 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject); // Associates the VBO with the current VAO
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(
+        0, 3,
+        GL_FLOAT,
+        GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
     glEnableVertexAttribArray(0);
 
     while (!glfwWindowShouldClose(window))
@@ -115,8 +137,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram); 
-        glBindVertexArray(vertexArrayObject); // u don't need to this in loop unless ur object changes
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject); // u don't need to this in loop unless ur object changes
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         processInput(window);
 
