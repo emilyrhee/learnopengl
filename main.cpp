@@ -40,14 +40,14 @@ void checkShaderError(unsigned int shader) {
 }
 
 // For reusing vertices when making triangles.
-uint createEBO(uint *indices) {
+uint createEBO(uint *indices, size_t size) {
     uint EBO;
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(indices),
+        size,
         indices,
         GL_STATIC_DRAW);
 
@@ -136,17 +136,17 @@ int main() {
        -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top
         0.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
        -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
-        0.5f,  0.5f, 0.0f,  // top
-        1.0f, -0.5f, 0.0f,  // bottom right
-        0.0f, -0.5f, 0.0f   // bottom left
+        0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f,  // top
+        1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom right
+        0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f   // bottom left
     };
 
     unsigned int indices[] = {
         0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
+        // 1, 2, 3  // second triangle
     };
 
-    unsigned int elementBufferObject = createEBO(indices);
+    unsigned int elementBufferObject = createEBO(indices, sizeof(indices));
 
     unsigned int vertexBufferObject; // Stores raw vertex data (positions, colors, texture coordinates, etc.) in GPU memory.
     unsigned int vertexArrayObject;  // Stores the configuration of how vertex data is interpreted and used.
@@ -159,14 +159,18 @@ int main() {
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    // position
     glVertexAttribPointer(
         0, 3,
         GL_FLOAT,
         GL_FALSE,
-        3 * sizeof(float),
+        6 * sizeof(float),
         (void *)0
     );
     glEnableVertexAttribArray(0);
+    // color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
