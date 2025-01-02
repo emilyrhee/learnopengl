@@ -1,4 +1,5 @@
 #include "glad/glad.h" // glad must go b4 glfw
+#include "include/shader.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
@@ -98,39 +99,8 @@ int main() {
         return -1;
     }
 
-    std::string vertexCode = fileToStr("../shaders/vertex.vert");
-    const char* vertexShaderSource = vertexCode.c_str(); 
-
-    std::string colorFromVertexCode = fileToStr("../shaders/colorFromVertex.frag");
-    const char* colorFromVertexSrc = colorFromVertexCode.c_str(); 
-
-    std::string uniformColorCode = fileToStr("../shaders/uniformColor.frag");
-    const char* uniformColorSrc = uniformColorCode.c_str(); 
-
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &colorFromVertexSrc, NULL);
-    glCompileShader(fragmentShader);
-
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    int fragmentShaderTwo = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShaderTwo, 1, &uniformColorSrc, NULL);
-    glCompileShader(fragmentShaderTwo);
-
-    unsigned int shaderProgramTwo = glCreateProgram();
-    glAttachShader(shaderProgramTwo, vertexShader);
-    glAttachShader(shaderProgramTwo, fragmentShaderTwo);
-    glLinkProgram(shaderProgramTwo);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    Shader shader("../shaders/vertex.vert", "../shaders/colorFromVertex.frag");
+    Shader shaderTwo("../shaders/vertex.vert", "../shaders/uniformColor.frag");
 
     float triangleOne[] = {
        -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top
@@ -176,15 +146,14 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        shader.use();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject); // u don't need to this in loop unless ur object changes
         glDrawArrays(GL_TRIANGLES, 0, 3);                           // drawin 6 vertices
         // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        glUseProgram(shaderProgramTwo);
+        shaderTwo.use();
         float greenValue = (sin(glfwGetTime()) / 6.0f) + 0.5f; // sin keeps value between 0-1
-        int vertexColorLocation = glGetUniformLocation(shaderProgramTwo, "ourColor");
-        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+        shaderTwo.setVec4("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
         glDrawArrays(GL_TRIANGLES, 3, 3); // drawin 6 vertices
 
         processInput(window);

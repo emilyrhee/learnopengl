@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/glad)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 find_package(glfw3 REQUIRED)
 
