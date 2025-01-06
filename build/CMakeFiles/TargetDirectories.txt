@@ -1,3 +1,0 @@
-/home/emilyrhee/Documents/coding/learnopengl/build/CMakeFiles/Test.dir
-/home/emilyrhee/Documents/coding/learnopengl/build/CMakeFiles/edit_cache.dir
-/home/emilyrhee/Documents/coding/learnopengl/build/CMakeFiles/rebuild_cache.dir
