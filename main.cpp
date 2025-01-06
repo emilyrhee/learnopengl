@@ -1,5 +1,7 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include "include/stb_image.h"
 #include "glad/glad.h" // glad must go b4 glfw
-#include "include/shader.h"
+#include "include/shader.hpp"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
@@ -68,18 +70,6 @@ void handleVertexObjects(
     glBufferData(GL_ARRAY_BUFFER, sizeOfVertices, vertices, GL_STATIC_DRAW);
 }
 
-std::string fileToStr(const char* filePath) {
-    std::ifstream file(filePath); // Open file!!
-    if (!file.is_open()) {
-        std::cerr << "Failed to open shader file." << std::endl;
-    }
-
-    std::stringstream stream;
-    stream << file.rdbuf(); // Read the file content into the stream. You'd use while loop for da long way.
-
-    return stream.str(); // Convert to a string
-}
-
 int main() {
     glfwInit();
     setGlfwVersion(3, 3);
@@ -102,59 +92,93 @@ int main() {
     Shader shader("../shaders/vertex.vert", "../shaders/colorFromVertex.frag");
     Shader shaderTwo("../shaders/vertex.vert", "../shaders/uniformColor.frag");
 
-    float triangleOne[] = {
-       -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top
-        0.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
-       -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
-        0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f,  // top
-        1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom right
-        0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f   // bottom left
+    float triangles[] = {
+        // positions          // colors           // texture coords
+        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
     };
 
     unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        // 1, 2, 3  // second triangle
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
     };
 
-    unsigned int elementBufferObject = createEBO(indices, sizeof(indices));
-
+    unsigned int EBO = createEBO(indices, sizeof(indices));
     unsigned int vertexBufferObject; // Stores raw vertex data (positions, colors, texture coordinates, etc.) in GPU memory.
     unsigned int vertexArrayObject;  // Stores the configuration of how vertex data is interpreted and used.
     handleVertexObjects(
         &vertexBufferObject,
         &vertexArrayObject,
-        triangleOne,
-        sizeof(triangleOne)
+        triangles,
+        sizeof(triangles)
     );
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // position
     glVertexAttribPointer(
         0, 3,
         GL_FLOAT,
         GL_FALSE,
-        6 * sizeof(float),
+        8 * sizeof(float),
         (void *)0
     );
     glEnableVertexAttribArray(0);
     // color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glVertexAttribPointer(
+        1, 3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)(3 * sizeof(float))
+    );
     glEnableVertexAttribArray(1);
+    // texture
+    glVertexAttribPointer(
+        2, 2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)(6 * sizeof(float))
+    );
+    glEnableVertexAttribArray(2);
+
+    float textureCoords[] = {
+        0.0f, -0.5f,
+        -0.5f, 0.5f,
+        0.5f, 0.5f
+    };
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load and generate the texture
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("../textures/container.jpg", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader.use();
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject); // u don't need to this in loop unless ur object changes
-        glDrawArrays(GL_TRIANGLES, 0, 3);                           // drawin 6 vertices
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // glBindTexture(GL_TEXTURE_2D, texture);
 
-        shaderTwo.use();
-        float greenValue = (sin(glfwGetTime()) / 6.0f) + 0.5f; // sin keeps value between 0-1
-        shaderTwo.setVec4("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
-        glDrawArrays(GL_TRIANGLES, 3, 3); // drawin 6 vertices
+        shader.use();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // u don't need to this in loop unless ur object changes
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         processInput(window);
 
