@@ -79,15 +79,24 @@ public:
         glUseProgram(ID);
     }
    
-    void setBool(const std::string& name, bool value) const {
+    void setUniformBool(const std::string& name, bool value) const {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
     }
 
-    void setInt(const std::string& name, int value) const {
+    /**
+     * Updates the value of an integer uniform variable in the
+     * currently bound shader program.
+     *
+     * @param name The name of the uniform variable in the shader.
+     * @param value The integer value to assign to the uniform variable.
+     *
+     * @note The shader must be in use before calling this function, i.e., the `use()` method should be called beforehand.
+     */
+    void setUniformInt(const std::string& name, int value) const {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
 
-    void setFloat(const std::string& name, float value) const {
+    void setUniformFloat(const std::string& name, float value) const {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
 

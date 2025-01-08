@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include "include/stb_image.h"
 #include "glad/glad.h" // glad must go b4 glfw
 #include "include/shader.hpp"
+#include "include/texture.hpp"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
@@ -91,13 +91,16 @@ int main() {
 
     Shader shader("../shaders/vertex.vert", "../shaders/colorFromVertex.frag");
     Shader shaderTwo("../shaders/vertex.vert", "../shaders/uniformColor.frag");
+    shader.use();
+    shader.setUniformInt("texture1", 0);
+    shader.setUniformInt("texture2", 1);
 
     float triangles[] = {
         // positions          // colors           // texture coords
-        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
+        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // top right
+        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // bottom right
+       -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+       -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // top left
     };
 
     unsigned int indices[] = {
@@ -148,35 +151,20 @@ int main() {
         -0.5f, 0.5f,
         0.5f, 0.5f
     };
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load and generate the texture
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load("../textures/slop.jpg", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
+
+    Texture slop("../textures/slop.jpg");
+    slop.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    Texture tomato("../textures/tomato.png");
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
-
+        glActiveTexture(GL_TEXTURE0);
+        slop.bind();
+        glActiveTexture(GL_TEXTURE1);
+        tomato.bind();
+        
         shader.use();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // u don't need to this in loop unless ur object changes
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
