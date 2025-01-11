@@ -24,7 +24,7 @@ void glfw_error_callback(int error, const char *description) {
     std::cout << "GLFW Error (" << error << "): " << description << std::endl;
 }
 
-void processInput(GLFWwindow *window) {
+void processKeyboardInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
@@ -89,11 +89,17 @@ int main() {
         return -1;
     }
 
+    // For displaying transparency properly
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     Shader shader("../shaders/vertex.vert", "../shaders/colorFromVertex.frag");
     Shader shaderTwo("../shaders/vertex.vert", "../shaders/uniformColor.frag");
     shader.use();
     shader.setUniformInt("texture1", 0);
     shader.setUniformInt("texture2", 1);
+    float alpha = 0.0f;
+    shader.setUniformFloat("alpha", alpha);
 
     float triangles[] = {
         // positions          // colors           // texture coords
@@ -153,8 +159,8 @@ int main() {
     };
 
     Texture slop("../textures/slop.jpg");
-    slop.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
     Texture tomato("../textures/tomato.png");
+    tomato.setFilter(GL_NEAREST);
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -162,6 +168,16 @@ int main() {
 
         glActiveTexture(GL_TEXTURE0);
         slop.bind();
+
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            alpha = alpha + 0.01f;
+            shader.setUniformFloat("alpha", alpha);
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            alpha = alpha - 0.01f;
+            shader.setUniformFloat("alpha", alpha);
+        }
+        
         glActiveTexture(GL_TEXTURE1);
         tomato.bind();
         
@@ -169,7 +185,7 @@ int main() {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // u don't need to this in loop unless ur object changes
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        processInput(window);
+        processKeyboardInput(window);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -53,29 +53,40 @@ public:
      * https://learnopengl.com/img/getting-started/texture_wrapping.png
      *
      * @param wrapS width
-     * @param wrapT height
+     * @param wrapT (optional) height. Takes the value of wrapS if not
+     * supplied.
      */
-    void setWrap(GLenum wrapS, GLenum wrapT) {
+    void setWrap(GLenum wrapS = GL_REPEAT, GLenum wrapT = GL_REPEAT) {
         bind();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+        if (wrapT == wrapS) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapS);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+        }
     }
 
     /**
      * @brief Sets the filtering mode for the texture.
      * 
-     * Possible modes are GL_NEAREST and GL_LINEAR. Use nearest neighbor for pixelated
-     * effect and linear interpolation for smoothing.
+     * Possible modes are GL_NEAREST and GL_LINEAR. Use nearest neighbor for
+     * pixelated effect and linear interpolation for smoothing.
      *
      * @param minFilter Controls how texture looks when it is smaller than the
      * surface it is being applied to.
-     * @param magFilter Controls how texture looks when it is larger than the
-     * surface it is being applied to.
+     * @param magFilter (optional) Controls how texture looks when it is larger than the
+     * surface it is being applied to. Takes value of minFilter if not supplied.
      */
-    void setFilter(GLenum minFilter, GLenum magFilter) {
+    void setFilter(GLenum filterMin = GL_NEAREST, GLenum filterMag = GL_NEAREST) {
         bind();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+        if (filterMag == filterMin) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMin);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMin);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMin);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMag);
+        }
     }
 };
 
