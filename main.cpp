@@ -9,6 +9,9 @@
 #include <string>
 #include <cmath>
 #include <filesystem>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void setGlfwVersion(int major, int minor) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
